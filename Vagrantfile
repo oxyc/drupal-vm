@@ -1,5 +1,9 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
+
+require 'json'
+require 'yaml'
+
 VAGRANTFILE_API_VERSION = '2' unless defined? VAGRANTFILE_API_VERSION
 
 # Absolute paths on the host machine.
@@ -40,7 +44,26 @@ def walk(obj, &fn)
   end
 end
 
-require 'yaml'
+if File.exist?("#{host_project_dir}/composer.json")
+  composer_conf = JSON.parse(File.read("#{host_project_dir}/composer.json"))
+  cconfig = composer_conf['extra']['drupalvm'] rescue Hash.new
+  cconfig = Hash.new if cconfig.nil?
+
+  # If Drupal VM is a Composer dependency set the correct paths.
+  if Dir.exists?("#{host_drupalvm_dir}/vendor/geerlingguy/drupal-vm")
+    host_project_dir = File.dirname(File.expand_path(__FILE__))
+    host_drupalvm_dir = "#{host_project_dir}/vendor/geerlingguy/drupal-vm"
+    host_config_dir = ENV['DRUPALVM_CONFIG_DIR'] ? "#{host_project_dir}/#{ENV['DRUPALVM_CONFIG_DIR']}" : host_project_dir
+    guest_drupalvm_dir = '/vagrant/vendor/geerlingguy/drupal-vm'
+  end
+
+  # Read config_dir from composer.json if set.
+  if !ENV['DRUPALVM_CONFIG_DIR'] && cconfig.include?('config_dir')
+    host_config_dir = "#{host_project_dir}/#{cconfig['config_dir']}"
+    guest_config_dir = "/vagrant/#{cconfig['config_dir']}"
+  end
+end
+
 # Load default VM configurations.
 vconfig = YAML.load_file("#{host_drupalvm_dir}/default.config.yml")
 # Use optional config.yml and local.config.yml for configuration overrides.
