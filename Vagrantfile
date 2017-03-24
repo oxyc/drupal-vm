@@ -45,12 +45,14 @@ def walk(obj, &fn)
 end
 
 if File.exist?("#{host_project_dir}/composer.json")
+  cconfig = {}
   composer_conf = JSON.parse(File.read("#{host_project_dir}/composer.json"))
-  cconfig = composer_conf['extra']['drupalvm'] rescue Hash.new
-  cconfig = Hash.new if cconfig.nil?
+  if composer_conf['extra'] && composer_conf['extra']['drupalvm']
+    cconfig = composer_conf['extra']['drupalvm']
+  end
 
   # If Drupal VM is a Composer dependency set the correct paths.
-  if Dir.exists?("#{host_drupalvm_dir}/vendor/geerlingguy/drupal-vm")
+  if Dir.exist?("#{host_drupalvm_dir}/vendor/geerlingguy/drupal-vm")
     host_project_dir = File.dirname(File.expand_path(__FILE__))
     host_drupalvm_dir = "#{host_project_dir}/vendor/geerlingguy/drupal-vm"
     host_config_dir = ENV['DRUPALVM_CONFIG_DIR'] ? "#{host_project_dir}/#{ENV['DRUPALVM_CONFIG_DIR']}" : host_project_dir
