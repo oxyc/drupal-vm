@@ -6,18 +6,6 @@ require 'yaml'
 
 VAGRANTFILE_API_VERSION = '2' unless defined? VAGRANTFILE_API_VERSION
 
-# Absolute paths on the host machine.
-host_drupalvm_dir = File.dirname(File.expand_path(__FILE__))
-host_project_dir = ENV['DRUPALVM_PROJECT_ROOT'] || host_drupalvm_dir
-host_config_dir = ENV['DRUPALVM_CONFIG_DIR'] ? "#{host_project_dir}/#{ENV['DRUPALVM_CONFIG_DIR']}" : host_project_dir
-
-# Absolute paths on the guest machine.
-guest_project_dir = '/vagrant'
-guest_drupalvm_dir = ENV['DRUPALVM_DIR'] ? "/vagrant/#{ENV['DRUPALVM_DIR']}" : guest_project_dir
-guest_config_dir = ENV['DRUPALVM_CONFIG_DIR'] ? "/vagrant/#{ENV['DRUPALVM_CONFIG_DIR']}" : guest_project_dir
-
-drupalvm_env = ENV['DRUPALVM_ENV'] || 'vagrant'
-
 # Cross-platform way of finding an executable in the $PATH.
 def which(cmd)
   exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
@@ -44,6 +32,12 @@ def walk(obj, &fn)
   end
 end
 
+drupalvm_env = ENV['DRUPALVM_ENV'] || 'vagrant'
+
+# Default paths when the project is based on Drupal VM.
+host_project_dir = host_drupalvm_dir = host_config_dir = File.dirname(File.expand_path(__FILE__))
+guest_project_dir = guest_drupalvm_dir = guest_config_dir = '/vagrant'
+
 if File.exist?("#{host_project_dir}/composer.json")
   cconfig = {}
   composer_conf = JSON.parse(File.read("#{host_project_dir}/composer.json"))
@@ -51,18 +45,16 @@ if File.exist?("#{host_project_dir}/composer.json")
     cconfig = composer_conf['extra']['drupalvm']
   end
 
-  # If Drupal VM is a Composer dependency set the correct paths.
-  if Dir.exist?("#{host_drupalvm_dir}/vendor/geerlingguy/drupal-vm")
-    host_project_dir = File.dirname(File.expand_path(__FILE__))
+  # If Drupal VM is a Composer dependency set the correct path.
+  if Dir.exist?("#{host_project_dir}/vendor/geerlingguy/drupal-vm")
     host_drupalvm_dir = "#{host_project_dir}/vendor/geerlingguy/drupal-vm"
-    host_config_dir = ENV['DRUPALVM_CONFIG_DIR'] ? "#{host_project_dir}/#{ENV['DRUPALVM_CONFIG_DIR']}" : host_project_dir
-    guest_drupalvm_dir = '/vagrant/vendor/geerlingguy/drupal-vm'
+    guest_drupalvm_dir = "#{guest_project_dir}/vendor/geerlingguy/drupal-vm"
   end
 
   # Read config_dir from composer.json if set.
-  if !ENV['DRUPALVM_CONFIG_DIR'] && cconfig.include?('config_dir')
+  if cconfig.include?('config_dir')
     host_config_dir = "#{host_project_dir}/#{cconfig['config_dir']}"
-    guest_config_dir = "/vagrant/#{cconfig['config_dir']}"
+    guest_config_dir = "#{guest_project_dir}/#{cconfig['config_dir']}"
   end
 end
 
