@@ -46,9 +46,10 @@ if File.exist?("#{host_project_dir}/composer.json")
   end
 
   # If Drupal VM is a Composer dependency set the correct path.
-  if Dir.exist?("#{host_project_dir}/vendor/geerlingguy/drupal-vm")
-    host_drupalvm_dir = "#{host_project_dir}/vendor/geerlingguy/drupal-vm"
-    guest_drupalvm_dir = "#{guest_project_dir}/vendor/geerlingguy/drupal-vm"
+  drupalvm_path = cconfig['path'] || 'vendor/geerlingguy/drupal-vm'
+  if Dir.exist?("#{host_project_dir}/#{drupalvm_path}")
+    host_drupalvm_dir = "#{host_project_dir}/#{drupalvm_path}"
+    guest_drupalvm_dir = "#{guest_project_dir}/#{drupalvm_path}"
   end
 
   # Read config_dir from composer.json if set.
