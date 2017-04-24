@@ -66,11 +66,13 @@ class Plugin implements PluginInterface, EventSubscriberInterface {
                     $this->io->writeError(
                         '<warning>'
                         . 'Drupal VM has been updated and consequently written over your Vagrantfile which from now on will be managed by Drupal VM. '
-                        . 'Due to this change, you are required to set your `config_dir` location in your composer.json file. Below follows the necessary change:'
+                        . 'Due to this change, you are required to set the `config_dir` location in your composer.json file:'
+                        . "\n"
+                        . "\n  $ composer config extra.drupalvm.config_dir <sub-directory>"
+                        . "\n"
                         . '</warning>'
                     );
-                    $this->io->writeError('');
-                    $this->io->writeError(json_encode(['extra' => ['drupalvm' => ['config_dir' => '<sub-directory>']]], JSON_PRETTY_PRINT));
+                    $this->io->writeError('<warning></warning>');
                 }
             }
         }
@@ -85,6 +87,6 @@ class Plugin implements PluginInterface, EventSubscriberInterface {
         if (!file_exists($vagrantfile)) {
             return false;
         }
-        return strpos(file_get_contents($vagrantfile), '# Load the real Vagrantfile') !== FALSE;
+        return strpos(file_get_contents($vagrantfile), '# Load the real Vagrantfile') !== false;
     }
 }
