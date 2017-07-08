@@ -39,18 +39,25 @@ class Plugin implements PluginInterface, EventSubscriberInterface {
      */
     public static function getSubscribedEvents() {
         return array(
-            ScriptEvents::POST_INSTALL_CMD => 'addVagrantfile',
-            ScriptEvents::POST_UPDATE_CMD => 'addVagrantfile',
+            ScriptEvents::POST_INSTALL_CMD => 'addFiles',
+            ScriptEvents::POST_UPDATE_CMD => 'addFiles',
         );
     }
 
     /**
-     * Add/update project Vagrantfile.
+     * Add/update required Drupal VM files.
      *
      * @param \Composer\Script\Event $event
      */
-    public function addVagrantfile(Event $event) {
+    public function addFiles(Event $event) {
+        $this->addVagrantfile();
+        $this->addConfigFile();
+    }
 
+    /**
+     * Add/update project Vagrantfile.
+     */
+    public function addVagrantfile() {
         $baseDir = dirname(Factory::getComposerFile());
         $source = __DIR__ . '/../../Vagrantfile';
         $target =  $baseDir . '/Vagrantfile';
@@ -74,6 +81,44 @@ class Plugin implements PluginInterface, EventSubscriberInterface {
                     );
                 }
             }
+        }
+    }
+
+    /**
+     * Add a project config.yml file.
+     *
+     * @param \Composer\Script\Event $event
+     */
+    public function addConfigFile() {
+        $baseDir = dirname(Factory::getComposerFile());
+        $extra = $this->composer->getPackage()->getExtra();
+
+        $configDir = isset($extra['drupalvm']['config_dir']) ? $extra['drupalvm']['config_dir'] : '';
+        $docroot = isset($extra['drupalvm']['docroot']) ? $extra['drupalvm']['docroot'] : 'web';
+
+        $target = implode(DIRECTORY_SEPARATOR, array_filter([$baseDir, $configDir, 'config.yml']));
+
+        if (!file_exists($target)) {
+            $config = '---'
+                . "\n" . 'vagrant_hostname: drupalvm.dev'
+                . "\n" . 'vagrant_machine_name: drupalvm'
+                . "\n" . 'vagrant_ip: 192.168.88.88'
+                . "\n"
+                . "\n" . 'drupal_build_composer_project: false'
+                . "\n" . 'drupal_build_composer: true'
+                . "\n"
+                . "\n" . 'drupal_composer_path: false'
+                . "\n" . 'drupal_composer_install_dir: /var/www/drupalvm'
+                . "\n" . 'drupal_core_path: "{{ drupal_composer_install_dir }}/' . $docroot . '"'
+                . "\n";
+
+            mkdir(dirname($target), 0755, true);
+            file_put_contents($target, $config);
+
+            $this->io->write(sprintf(
+                '<info>Drupal VM has scaffolded a configuration file: <comment>%s</comment></info>',
+                (!empty($configDir) ? $configDir . '/' : '') . 'config.yml'
+            ));
         }
     }
 
