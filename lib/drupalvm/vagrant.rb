@@ -133,7 +133,7 @@ end
 # Return a default post_up_message.
 def get_default_post_up_message(vconfig)
   'Your Drupal VM Vagrant box is ready to use!'\
-    "\n* Visit the dashboard for an overview of your site: http://dashboard.#{vconfig['vagrant_hostname']} (or http://#{vconfig['vagrant_ip']})"\
+    "\n* Visit the dashboard for an overview of your site: http://dashboard.#{vconfig['vagrant_hostname']}"\
     "\n* You can SSH into your machine with `vagrant ssh`."\
     "\n* Find out more in the Drupal VM documentation at http://docs.drupalvm.com"
 end

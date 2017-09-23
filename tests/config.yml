@@ -1,4 +1,5 @@
 ---
+vagrant_ip: 192.168.88.88
 # Update the composer_home_path for global installs.
 composer_home_path: "/{{ drupalvm_user }}/.composer"
 

@@ -16,7 +16,7 @@ vagrant_gui: false
 # machine name, and IP address for each instance.
 vagrant_hostname: drupalvm.test
 vagrant_machine_name: drupalvm
-vagrant_ip: 192.168.88.88
+vagrant_ip: dhcp
 
 # Allow Drupal VM to be accessed via a public network interface on your host.
 # Vagrant boxes are insecure by default, so be careful. You've been warned!
@@ -42,7 +42,7 @@ vagrant_cpus: 1
 # Ensure vagrant plugins are installed.
 vagrant_plugins:
   - name: vagrant-vbguest
-  - name: vagrant-hostsupdater
+  - name: vagrant-hostmanager
 
 # Minimum required versions.
 drupalvm_vagrant_version_min: '1.8.6'
