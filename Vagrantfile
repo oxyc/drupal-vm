@@ -54,10 +54,24 @@ Vagrant.configure('2') do |config|
 
   # Networking configuration.
   config.vm.hostname = vconfig['vagrant_hostname']
-  config.vm.network :private_network,
-                    ip: vconfig['vagrant_ip'],
-                    auto_network: vconfig['vagrant_ip'] == '0.0.0.0' && Vagrant.has_plugin?('vagrant-auto_network')
 
+  if vconfig['vagrant_ip'] == 'dhcp'
+    # Automatically assign IP
+    config.vm.network :private_network, type: 'dhcp'
+
+    # Use assigned IP with vagrant-hostmanager
+    if Vagrant.has_plugin?('vagrant-hostmanager')
+      config.hostmanager.ip_resolver = vagrant_ip_resolver
+    end
+  elsif vconfig['vagrant_ip'] == '0.0.0.0' && Vagrant.has_plugin?('vagrant-auto_network')
+    # Use vagrant-auto_network to assign IP automatically
+    config.vm.network :private_network, ip: vconfig['vagrant_ip'], auto_network: true
+  else
+    # Static IP
+    config.vm.network :private_network, ip: vconfig['vagrant_ip']
+  end
+
+  # Allow public network access
   unless vconfig['vagrant_public_ip'].empty?
     config.vm.network :public_network,
                       ip: vconfig['vagrant_public_ip'] != '0.0.0.0' ? vconfig['vagrant_public_ip'] : nil
@@ -75,7 +89,7 @@ Vagrant.configure('2') do |config|
 
   # If a hostsfile manager plugin is installed, add all server names as aliases.
   aliases = get_vhost_aliases(vconfig) - [config.vm.hostname]
-  if Vagrant.has_plugin?('vagrant-hostsupdater')
+  if Vagrant.has_plugin?('vagrant-hostsupdater') && vconfig['vagrant_ip'] != 'dhcp'
     config.hostsupdater.aliases = aliases
   elsif Vagrant.has_plugin?('vagrant-hostmanager')
     config.hostmanager.enabled = true
